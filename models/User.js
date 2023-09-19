@@ -45,5 +45,9 @@ const userSchema = new Schema({
     }
 })
 
+userSchema.virtual('fullname').get(function () {
+    return `${this.firstname} ${this.lastname}`
+})
+
 const User = model('User', userSchema)
 export default User
