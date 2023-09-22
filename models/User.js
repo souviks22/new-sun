@@ -17,7 +17,12 @@ const userSchema = new Schema({
     },
     phone: {
         type: Number,
-        unique: true
+        unique: true,
+        sparse: true,
+        validate: {
+            validator: value => phoneRegex.test(value),
+            message: props => `${props.value} is not a valid 10-digit phone number!`
+        }
     },
     image: {
         type: String
