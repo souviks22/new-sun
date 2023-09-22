@@ -1,6 +1,6 @@
+import bcrypt from "bcrypt"
 import { Schema, model } from 'mongoose'
-import { regex } from "../validation/regex"
-import bcrpyt from "bcrypt"
+import { regex } from "../validation/regex.js"
 
 const userSchema = new Schema({
     email: {
