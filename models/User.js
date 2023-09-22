@@ -1,13 +1,17 @@
 import { Schema, model } from 'mongoose'
-
+const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/
+const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+const phoneRegex = /\d{10}/
 const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        match: emailRegex
     },
     password: {
-        type: String
+        type: String,
+        match: passwordRegex
     },
     firstname: {
         type: String
