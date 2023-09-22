@@ -6,17 +6,21 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        match: regex.email
     },
     password: {
         type: String,
+        match: regex.password,
         set: pw => bcrpyt.hash(pw, process.env.HASH_SECRET)
     },
     firstname: {
-        type: String
+        type: String,
+        minlength: 2
     },
     lastname: {
-        type: String
+        type: String,
+        minlength: 2
     },
     phone: {
         type: Number,
