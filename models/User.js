@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose'
-import { regex } from "../validation/regex"
-import bcrpyt from "bcrypt"
+import { regex } from "../validation/regex.js"
 
 const userSchema = new Schema({
     email: {
@@ -11,8 +10,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        match: regex.password,
-        set: pw => bcrpyt.hash(pw, process.env.HASH_SECRET)
+        required: true
     },
     firstname: {
         type: String,
@@ -23,13 +21,9 @@ const userSchema = new Schema({
         minlength: 2
     },
     phone: {
-        type: Number,
+        type: String,
         unique: true,
-        sparse: true,
-        validate: {
-            validator: value => regex.phone.test(value),
-            message: props => `${props.value} is not a valid 10-digit phone number!`
-        }
+        match: regex.phone
     },
     image: {
         type: String
@@ -39,8 +33,7 @@ const userSchema = new Schema({
     },
     sex: {
         type: String,
-        enum: ['Male', 'Female', 'None'],
-        default: 'None'
+        enum: ['Male', 'Female', 'Prefer not to say']
     },
     bloodGroup: {
         type: String,

@@ -9,6 +9,7 @@ dotenv.config()
 mongoose.connect(process.env.DB_URL)
     .then(() => console.log('Database Connected'))
     .catch(() => console.log('Failed to Connect to Database'))
+    // .catch(error => console.log(error))
 
 app.use(express.json())
 app.use('/', authRouter)
