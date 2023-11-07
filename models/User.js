@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt"
 import { Schema, model } from 'mongoose'
 import { regex } from "../validation/regex.js"
 

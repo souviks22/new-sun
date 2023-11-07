@@ -1,5 +1,4 @@
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+import User from "../models/User.js"
 import catchAsync from "../errors/async.js"
 import jwt from "jsonwebtoken"
 import bcrpyt from "bcrypt"
