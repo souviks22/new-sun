@@ -1,19 +1,19 @@
 import { Router } from "express"
 import { header, body } from "express-validator"
-import { isAuthorized } from "../middlewares/auth.js"
-import { fetchUserHandler, updateUserHandler } from "../controllers/user.js"
+import { isAuthorized } from "../middlewares/authorization.js"
+import { fetchUserHandler, updateUserHandler } from "../controllers/user.controller.js"
 
 const userRouter = Router()
 
 userRouter.get('/:id',
-    header('authorization').notEmpty(),
+    header('authorization').exists(),
     isAuthorized,
     fetchUserHandler
 )
 
 userRouter.put('/:id',
-    header('authorization').notEmpty(),
-    body('update').notEmpty(),
+    header('authorization').exists(),
+    body('update').exists(),
     isAuthorized,
     updateUserHandler
 )

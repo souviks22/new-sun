@@ -6,14 +6,12 @@ import bcrpyt from "bcrypt"
 import { regex } from "../validation/regex.js"
 
 export const signupHandler = catchAsync(async (req, res) => {
-    const { email, password } = req.body
-    const userIsPresent = await User.findOne({ email })
-    if (userIsPresent) throw new Error('You are already registered')
+    const { password } = req.body
     if (!regex.password.test(password)) throw new Error('Your password is way too weak')
     const hashedPw = await bcrpyt.hash(password, parseInt(process.env.HASH_ROUNDS))
-    const user = new User({ email, password: hashedPw })
+    const user = new User({ ...req.body, password: hashedPw })
     await user.save()
-    const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET)
+    const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET, { expiresIn: '365d' })
     res.status(201).json({
         success: true,
         message: 'You are successfully signed up',

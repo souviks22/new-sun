@@ -5,23 +5,22 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: true,
-        match: regex.email
+        unique: [true, 'You are already registered'],
+        match: [regex.email, 'Your email is invalid']
     },
     password: {
         type: String,
-        required: true,
-        match: regex.password
+        required: true
     },
     firstname: {
         type: String,
         required: true,
-        minlength: 2
+        minlength: [2, 'Your firstname is too short']
     },
     lastname: {
         type: String,
         required: true,
-        minlength: 2
+        minlength: [2, 'Your lastname is too short']
     },
     dob: {
         type: Date,
@@ -29,8 +28,9 @@ const userSchema = new Schema({
     },
     phone: {
         type: String,
-        unique: true,
-        match: regex.phone
+        required: true,
+        unique: [true, 'Your mobile number is already registered'],
+        match: [regex.phone, 'Your mobile number is invalid']
     },
     image: {
         type: String

@@ -1,8 +1,8 @@
 import dotenv from "dotenv"
 import express from "express"
 import mongoose from "mongoose"
-import authRouter from "../routers/authRouter.js"
-import userRouter from "../routers/userRouter.js"
+import authRouter from "../routers/auth.router.js"
+import userRouter from "../routers/user.router.js"
 
 const app = express()
 dotenv.config()
