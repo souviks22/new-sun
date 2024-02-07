@@ -5,9 +5,15 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: [true, 'You are already registered'],
+        unique: true,
+        immutable: true,
         match: [regex.email, 'Your email is invalid'],
-        immutable: [true, 'Email cannot be changed']
+        validate: {
+            validator: function (email) {
+                return model('User', userSchema).findOne({ email }).exec().then(user => !user)
+            },
+            message: 'You are already registered'
+        }
     },
     password: {
         type: String,
@@ -26,13 +32,19 @@ const userSchema = new Schema({
     dob: {
         type: Date,
         required: true,
-        immutable: [true, 'DOB cannot be changed']
+        immutable: true
     },
     phone: {
         type: String,
         required: true,
-        unique: [true, 'Your mobile number is already registered'],
-        match: [regex.phone, 'Your mobile number is invalid']
+        unique: true,
+        match: [regex.phone, 'Your mobile number is invalid'],
+        validate: {
+            validator: function (phone) {
+                return model('User', userSchema).findOne({ phone }).exec().then(user => !user)
+            },
+            message: 'Your mobile number is already registered'
+        }
     },
     image: {
         type: String
@@ -43,20 +55,30 @@ const userSchema = new Schema({
     sex: {
         type: String,
         required: true,
-        enum: ['Male', 'Female', 'Prefer not to say']
+        enum: {
+            values: ['Male', 'Female', 'Prefer not to say'],
+            message: 'Your sex is corrupted'
+        }
     },
     bloodGroup: {
         type: String,
         required: true,
-        enum: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+        enum: {
+            values: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
+            message: 'Your blood group is corrupted'
+        }
     },
     joinedOn: {
         type: Date,
-        default: new Date()
+        default: new Date(),
+        immutable: true
     },
     status: {
         type: String,
-        enum: ['Active', 'Inactive'],
+        enum: {
+            values: ['Active', 'Inactive'],
+            message: 'Your status is corrupted'
+        },
         default: 'Active'
     }
 })
@@ -71,6 +93,19 @@ userSchema.virtual('age').get(function () {
     if (today.getMonth() < this.dob.getMonth()) --age
     else if (today.getMonth() === this.dob.getMonth() && today.getDate() < this.dob.getDate()) --age
     return age
+})
+
+userSchema.pre('findOneAndUpdate', function (next) {
+    const update = this.getUpdate()
+    const immutableFields = Object.keys(this.schema.paths).filter(field => {
+        return this.schema.paths[field].options.immutable === true
+    })
+    for (const field of immutableFields) {
+        if (update.hasOwnProperty(field)) {
+            return next(new Error(`Your ${field} cannot be changed`))
+        }
+    }
+    next()
 })
 
 const User = model('User', userSchema)

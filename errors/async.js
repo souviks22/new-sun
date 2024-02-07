@@ -4,19 +4,20 @@ const catchAsync = handler => {
     return (req, res, next) => {
         const { errors } = validationResult(req)
         if (errors.length) {
-            return res.status(400).json({
+            const fields = []
+            for (const error of errors) fields.push(error.path)
+            res.status(400).json({
                 success: false,
-                message: errors
+                message: `Your ${fields.join(', ')} ${fields.length == 1 ? 'is' : 'are'} missing`
+            })
+        } else {
+            handler(req, res, next).catch(error => {
+                res.status(500).json({
+                    success: false,
+                    message: error.message
+                })
             })
         }
-        handler(req, res, next).catch(error => {
-            const response = {
-                success: false,
-                message: error.message
-            }
-            if (error.name === 'ValidationError') res.status(400).json(response)
-            else res.status(500).json(response)
-        })
     }
 }
 

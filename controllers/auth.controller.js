@@ -6,10 +6,10 @@ import bcrpyt from "bcrypt"
 import { regex } from "../validation/regex.js"
 
 export const signupHandler = catchAsync(async (req, res) => {
-    const { password } = req.body
+    const { email, password } = req.body
     if (!regex.password.test(password)) throw new Error('Your password is way too weak')
     const hashedPw = await bcrpyt.hash(password, parseInt(process.env.HASH_ROUNDS))
-    const user = new User({ ...req.body, password: hashedPw })
+    const user = new User({ ...req.body, email: email.toLowerCase(), password: hashedPw })
     await user.save()
     const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET, { expiresIn: '365d' })
     res.status(201).json({
@@ -21,7 +21,7 @@ export const signupHandler = catchAsync(async (req, res) => {
 
 export const signinHandler = catchAsync(async (req, res) => {
     const { email, password } = req.body
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email: email.toLowerCase() })
     if (!user) throw new Error('Incorrect username or password')
     const isMatched = await bcrpyt.compare(password, user.password)
     if (!isMatched) throw new Error('Incorrect username or password')

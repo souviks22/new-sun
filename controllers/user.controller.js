@@ -9,7 +9,7 @@ export const fetchUserHandler = catchAsync(async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'User details retrieved',
-        data: { user }
+        data: { user: user.toObject({ virtuals: true }) }
     })
 })
 
