@@ -6,7 +6,8 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: [true, 'You are already registered'],
-        match: [regex.email, 'Your email is invalid']
+        match: [regex.email, 'Your email is invalid'],
+        immutable: [true, 'Email cannot be changed']
     },
     password: {
         type: String,
@@ -24,7 +25,8 @@ const userSchema = new Schema({
     },
     dob: {
         type: Date,
-        required: true
+        required: true,
+        immutable: [true, 'DOB cannot be changed']
     },
     phone: {
         type: String,
@@ -47,6 +49,10 @@ const userSchema = new Schema({
         type: String,
         required: true,
         enum: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+    },
+    joinedOn: {
+        type: Date,
+        default: new Date()
     },
     status: {
         type: String,
