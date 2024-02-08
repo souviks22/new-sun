@@ -1,27 +1,25 @@
 import { Router } from "express"
 import { header, body } from "express-validator"
 import { isAuthorized } from "../middlewares/authorization.js"
-import { fetchUserHandler, updateUserHandler, fetchContributionsHandler } from "../controllers/user.controller.js"
+import { fetchMemberHandler, updateMemberHandler, deleteMemberHandler } from "../controllers/member.controller.js"
 
-const userRouter = Router()
+export const memberRouter = Router()
 
-userRouter.get('/:id',
+memberRouter.get('/:id',
     header('authorization').exists(),
     isAuthorized,
-    fetchUserHandler
+    fetchMemberHandler
 )
 
-userRouter.put('/:id',
+memberRouter.put('/:id',
     header('authorization').exists(),
     body('update').exists(),
     isAuthorized,
-    updateUserHandler
+    updateMemberHandler
 )
 
-userRouter.get('/:id/contributions',
+memberRouter.delete('/:id',
     header('authorization').exists(),
     isAuthorized,
-    fetchContributionsHandler
+    deleteMemberHandler
 )
-
-export default userRouter

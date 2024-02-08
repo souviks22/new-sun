@@ -1,18 +1,18 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model } from "mongoose"
 import { regex } from "../validation/regex.js"
 
-const userSchema = new Schema({
+const memberSchema = new Schema({
     email: {
         type: String,
         required: true,
         unique: true,
         immutable: true,
-        match: [regex.email, 'Your email is invalid'],
+        match: [regex.email, 'Your email is invalid.'],
         validate: {
             validator: function (email) {
-                return model('User', userSchema).findOne({ email }).exec().then(user => !user)
+                return model('Member', memberSchema).findOne({ email }).exec().then(member => !member)
             },
-            message: 'You are already registered'
+            message: 'You are already registered.'
         }
     },
     password: {
@@ -22,12 +22,12 @@ const userSchema = new Schema({
     firstname: {
         type: String,
         required: true,
-        minlength: [2, 'Your firstname is too short']
+        minlength: [2, 'Your firstname is too short.']
     },
     lastname: {
         type: String,
         required: true,
-        minlength: [2, 'Your lastname is too short']
+        minlength: [2, 'Your lastname is too short.']
     },
     dob: {
         type: Date,
@@ -38,12 +38,12 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        match: [regex.phone, 'Your mobile number is invalid'],
+        match: [regex.phone, 'Your mobile number is invalid.'],
         validate: {
             validator: function (phone) {
-                return model('User', userSchema).findOne({ phone }).exec().then(user => !user)
+                return model('Member', memberSchema).findOne({ phone }).exec().then(member => !member)
             },
-            message: 'Your mobile number is already registered'
+            message: 'Your mobile number is already registered.'
         }
     },
     image: {
@@ -57,7 +57,7 @@ const userSchema = new Schema({
         required: true,
         enum: {
             values: ['Male', 'Female', 'Prefer not to say'],
-            message: 'Your sex is corrupted'
+            message: 'Your sex cannot be accepted.'
         }
     },
     bloodGroup: {
@@ -65,7 +65,7 @@ const userSchema = new Schema({
         required: true,
         enum: {
             values: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
-            message: 'Your blood group is corrupted'
+            message: 'Your blood group cannot be accepted.'
         }
     },
     joinedOn: {
@@ -77,17 +77,17 @@ const userSchema = new Schema({
         type: String,
         enum: {
             values: ['Active', 'Inactive'],
-            message: 'Your status is corrupted'
+            message: 'Your status cannot be accepted.'
         },
         default: 'Active'
     }
 })
 
-userSchema.virtual('fullname').get(function () {
+memberSchema.virtual('fullname').get(function () {
     return `${this.firstname} ${this.lastname}`
 })
 
-userSchema.virtual('age').get(function () {
+memberSchema.virtual('age').get(function () {
     const today = new Date()
     let age = today.getFullYear() - this.dob.getFullYear()
     if (today.getMonth() < this.dob.getMonth()) --age
@@ -95,18 +95,17 @@ userSchema.virtual('age').get(function () {
     return age
 })
 
-userSchema.pre('findOneAndUpdate', function (next) {
+memberSchema.pre('findOneAndUpdate', function (next) {
     const update = this.getUpdate()
     const immutableFields = Object.keys(this.schema.paths).filter(field => {
         return this.schema.paths[field].options.immutable === true
     })
     for (const field of immutableFields) {
         if (update.hasOwnProperty(field)) {
-            return next(new Error(`Your ${field} cannot be changed`))
+            return next(new Error(`Your ${field} cannot be changed.`))
         }
     }
     next()
 })
 
-const User = model('User', userSchema)
-export default User
+export const Member = model('Member', memberSchema)

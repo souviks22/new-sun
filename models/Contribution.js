@@ -3,27 +3,33 @@ import { Schema, model } from "mongoose"
 const contributionSchema = new Schema({
     contributor: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-        immutable: true
+        ref: 'Member',
+        required: true
     },
     amount: {
         type: Number,
         required: true,
         immutable: true,
-        min: [0, 'Your amount cannot be negative']
+        min: [1, 'Your contribution should be a positive value.']
     },
-    date: {
+    startDate: {
         type: Date,
-        required: true,
-        immutable: true
+        required: true
+    },
+    endDate: {
+        type: Date,
+        default: function () {
+            return this.startDate
+        }
     },
     status: {
         type: String,
-        enum: ['successful', 'pending', 'failed'],
-        default: 'pending'
+        enum: {
+            values: ['successful', 'pending', 'failed'],
+            message: 'The given contribution status cannot be accepted.'
+        },
+        default: 'successful'
     }
 })
 
-const Contribution = model('Contribution', contributionSchema)
-export default Contribution
+export const Contribution = model('Contribution', contributionSchema)

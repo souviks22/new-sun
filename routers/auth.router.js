@@ -2,7 +2,7 @@ import { Router } from "express"
 import { body } from "express-validator"
 import { signupHandler, signinHandler } from "../controllers/auth.controller.js"
 
-const authRouter = Router()
+export const authRouter = Router()
 
 authRouter.post('/signup',
     body('email').exists(),
@@ -21,5 +21,3 @@ authRouter.post('/signin',
     body('password').exists(),
     signinHandler
 )
-
-export default authRouter
