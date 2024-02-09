@@ -28,7 +28,7 @@ const feedbackSchema = new Schema({
         type: Number,
         required: true,
         min: [1, 'Your rating cannot be less than 1.'],
-        max: [10, 'Your rating cannot be greater than 10.']
+        max: [5, 'Your rating cannot be greater than 5.']
     }
 })
 

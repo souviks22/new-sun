@@ -4,10 +4,11 @@ import catchAsync from "../errors/async.js"
 
 export const fetchFeedbacksHandler = catchAsync(async (req, res) => {
     const feedbacks = await Feedback.find()
+    feedbacks.sort((a, b) => b.rating - a.rating || b.content.length - a.content.length)
     res.status(200).json({
         success: true,
-        message: 'All feedbacks are retrieved.',
-        data: { feedbacks }
+        message: 'Top 5 feedbacks are retrieved.',
+        data: { feedbacks: feedbacks.slice(0, 5) }
     })
 })
 
