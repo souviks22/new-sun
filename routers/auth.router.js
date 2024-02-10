@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body } from "express-validator"
-import { signupHandler, signinHandler } from "../controllers/auth.controller.js"
+import { signupInitiationHandler, signupVerificationHandler, signinHandler } from "../controllers/auth.controller.js"
 
 export const authRouter = Router()
 
@@ -13,7 +13,13 @@ authRouter.post('/signup',
     body('phone').exists(),
     body('sex').exists(),
     body('bloodGroup').exists(),
-    signupHandler
+    signupInitiationHandler
+)
+
+authRouter.post('/signup-verify',
+    body('email').exists(),
+    body('otp').exists(),
+    signupVerificationHandler
 )
 
 authRouter.post('/signin',
