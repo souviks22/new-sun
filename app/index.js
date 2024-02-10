@@ -1,10 +1,12 @@
-import cors from 'cors'
+import cors from "cors"
 import dotenv from "dotenv"
 import express from "express"
 import mongoose from "mongoose"
-import authRouter from "../routers/auth.router.js"
-import userRouter from "../routers/user.router.js"
-import contributionRouter from "../routers/contribution.router.js"
+
+import { authRouter } from "../routers/auth.router.js"
+import { contributionRouter } from "../routers/contribution.router.js"
+import { feedbackRouter } from "../routers/feedback.router.js"
+import { memberRouter } from "../routers/member.router.js"
 
 const app = express()
 dotenv.config()
@@ -16,6 +18,8 @@ mongoose.connect(process.env.DB_URL)
 
 app.use(express.json())
 app.use('/', authRouter)
-app.use('/users', userRouter)
+app.use('/members', memberRouter)
 app.use('/contributions', contributionRouter)
+app.use('/feedbacks', feedbackRouter)
+
 app.listen(process.env.PORT, () => console.log('Server in On'))
