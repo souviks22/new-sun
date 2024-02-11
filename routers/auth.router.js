@@ -1,6 +1,7 @@
 import { Router } from "express"
-import { body } from "express-validator"
-import { signupInitiationHandler, signupVerificationHandler, signinHandler } from "../controllers/auth.controller.js"
+import { header, body } from "express-validator"
+import { isAuthorized } from "../middlewares/authorization.js"
+import { signupInitiationHandler, signupVerificationHandler, signinHandler, authPersistenceHandler } from "../controllers/auth.controller.js"
 
 export const authRouter = Router()
 
@@ -26,4 +27,10 @@ authRouter.post('/signin',
     body('email').exists(),
     body('password').exists(),
     signinHandler
+)
+
+authRouter.get('/authenticate',
+    header('authorization').exists(),
+    isAuthorized,
+    authPersistenceHandler
 )

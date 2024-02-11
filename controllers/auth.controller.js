@@ -71,3 +71,14 @@ export const signinHandler = catchAsync(async (req, res) => {
         data: { token }
     })
 })
+
+export const authPersistenceHandler = catchAsync(async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]
+    const { _id } = jwt.verify(token, process.env.TOKEN_SECRET)
+    const member = await Member.findById(_id)
+    res.status(200).json({
+        success: true,
+        message: 'You are authenticated',
+        data: { member: member.toObject({ virtuals: true }) }
+    })
+})
