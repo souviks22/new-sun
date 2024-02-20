@@ -23,4 +23,4 @@ app.use('/members', memberRouter)
 app.use('/contributions', contributionRouter)
 app.use('/feedbacks', feedbackRouter)
 
-app.listen(process.env.PORT, () => console.log('Server in On'))
+app.listen(process.env.PORT, () => console.log('Server is On'))
