@@ -80,6 +80,14 @@ const memberSchema = new Schema({
             message: 'Your status cannot be accepted.'
         },
         default: 'Active'
+    },
+    designation: {
+        type: String,
+        enum: {
+            values: ['Admin', 'User'],
+            message: 'Your designation cannot be accepted.'
+        },
+        default: 'User'
     }
 })
 
