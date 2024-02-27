@@ -27,7 +27,7 @@ export const signupInitiationHandler = catchAsync(async (req, res) => {
         details: { ...req.body, password: hashedPw },
         createdAt: Date.now()
     }
-    sendEmailFromServer(email, 'Team New Sun Email Verification', otpVerificationEmail(otp))
+    sendEmailFromServer(email, 'Team New Sun Email Verification', otpVerificationEmail(req.body.firstname, otp))
     res.status(200).json({
         success: true,
         message: 'OTP is successfully sent to your email address.'
