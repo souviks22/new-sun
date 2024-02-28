@@ -10,7 +10,13 @@ const contributionSchema = new Schema({
         type: Number,
         required: true,
         immutable: true,
-        min: [1, 'Your contribution should be a positive value.']
+        validate: {
+            validator: function (amount) {
+                const months = (this.endDate.getMonth() - this.startDate.getMonth() + 1) + 12 * (this.endDate.getFullYear() - this.startDate.getFullYear())
+                return amount / months >= 30
+            },
+            message: 'Your contribution is lower than the minimum amount of Rs. 30 per month.'
+        }
     },
     startDate: {
         type: Date,
@@ -20,6 +26,12 @@ const contributionSchema = new Schema({
         type: Date,
         default: function () {
             return this.startDate
+        },
+        validate: {
+            validator: function (endDate) {
+                return endDate.getMilliseconds() >= this.startDate.getMilliseconds()
+            },
+            message: 'Your contribution duration cannot be accpeted.'
         }
     },
     status: {
@@ -28,7 +40,7 @@ const contributionSchema = new Schema({
             values: ['successful', 'pending', 'failed'],
             message: 'The given contribution status cannot be accepted.'
         },
-        default: 'successful'
+        default: 'pending'
     }
 })
 

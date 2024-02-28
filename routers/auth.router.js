@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { header, body } from "express-validator"
+import { header, body, query } from "express-validator"
 import { isAuthorized } from "../middlewares/authorization.js"
 import { signupInitiationHandler, signupVerificationHandler, signinHandler, authPersistenceHandler } from "../controllers/auth.controller.js"
 

@@ -12,3 +12,10 @@ export const isAuthorized = catchAsync(async (req, res, next) => {
     if (!member) throw new Error('You are not authorized.')
     next()
 })
+
+export const isAdmin = catchAsync(async (req, res, next) => {
+    const { _id } = jwt.verify(req.headers.authorization.split(' ')[1], process.env.TOKEN_SECRET)
+    const { designation } = await Member.findById(_id)
+    if (designation !== 'Admin') throw new Error('You are not an admin.')
+    next()
+})

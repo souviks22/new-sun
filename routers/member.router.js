@@ -6,8 +6,6 @@ import { fetchMemberHandler, updateMemberHandler, deleteMemberHandler } from "..
 export const memberRouter = Router()
 
 memberRouter.get('/:id',
-    header('authorization').exists(),
-    isAuthorized,
     fetchMemberHandler
 )
 
