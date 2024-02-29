@@ -2,8 +2,7 @@ import cors from "cors"
 import dotenv from "dotenv"
 import express from "express"
 import mongoose from "mongoose"
-import dotenv from "dotenv"
-import cors from "cors"
+
 
 import { authRouter } from "../routers/auth.router.js"
 import { contributionRouter } from "../routers/contribution.router.js"

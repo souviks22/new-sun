@@ -29,10 +29,15 @@ const contributionSchema = new Schema({
         },
         validate: {
             validator: function (endDate) {
-                return endDate.getMilliseconds() >= this.startDate.getMilliseconds()
+                return endDate >= this.startDate
             },
             message: 'Your contribution duration cannot be accpeted.'
         }
+    },
+    contributedOn: {
+        type: Date,
+        default: new Date(),
+        immutable: true
     },
     status: {
         type: String,
