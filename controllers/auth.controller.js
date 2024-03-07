@@ -27,7 +27,7 @@ export const signupInitiationHandler = catchAsync(async (req, res) => {
         details: { ...req.body, password: hashedPw },
         createdAt: Date.now()
     }
-    sendEmailFromServer(email, 'Team New Sun Email Verification', otpVerificationEmail(otp))
+    sendEmailFromServer(email, 'Team New Sun Email Verification', otpVerificationEmail(req.body.firstname, otp))
     res.status(200).json({
         success: true,
         message: 'OTP is successfully sent to your email address.'
@@ -44,7 +44,7 @@ export const signupVerificationHandler = catchAsync(async (req, res) => {
     const path = `${email}.png`
     await QRCode.toFile(path, `${process.env.FRONTEND_DOMAIN}/members/${member._id}`)
     const url = await uploadToCloudinary(path, 'qr-codes')
-    sendEmailFromServer(email, 'Team New Sun Joining Confirmation', signupConfirmationEmail(url))
+    sendEmailFromServer(email, 'Team New Sun Joining Confirmation', signupConfirmationEmail(member.firstname, url))
     fs.unlinkSync(path)
     const token = jwt.sign({ _id: member._id }, process.env.TOKEN_SECRET, { expiresIn: '30d' })
     res.status(200).json({
