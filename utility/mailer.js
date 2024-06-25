@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer"
 import dotenv from "dotenv"
 
-dotenv.config()
+process.env.NODE_ENV !== 'production' && dotenv.config()
 
 const transporter = nodemailer.createTransport({
     service: process.env.MAIL_SERVICE,
