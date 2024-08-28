@@ -1,7 +1,7 @@
 import { Router } from "express"
-import { header, body, query } from "express-validator"
+import { body, header } from "express-validator"
+import { authPersistenceHandler, signinHandler, signupInitiationHandler, signupVerificationHandler } from "../controllers/auth.controller.js"
 import { isAuthorized } from "../middlewares/authorization.js"
-import { signupInitiationHandler, signupVerificationHandler, signinHandler, authPersistenceHandler } from "../controllers/auth.controller.js"
 
 export const authRouter = Router()
 
