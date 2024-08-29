@@ -2,7 +2,7 @@ import { Feedback } from "../models/Feedback.js"
 
 import catchAsync from "../errors/async.js"
 
-export const fetchFeedbacksHandler = catchAsync(async (req, res) => {
+export const fetchFeedbacksHandler = catchAsync(async (_req, res) => {
     const feedbacks = await Feedback.find()
     feedbacks.sort((a, b) => b.rating - a.rating || b.content.length - a.content.length)
     res.status(200).json({

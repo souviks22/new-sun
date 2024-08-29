@@ -70,7 +70,7 @@ const memberSchema = new Schema({
     },
     joinedOn: {
         type: Date,
-        default: new Date(),
+        default: Date.now,
         immutable: true
     },
     status: {

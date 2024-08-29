@@ -3,7 +3,7 @@ import { Member } from "../models/Member.js"
 import catchAsync from "../errors/async.js"
 import jwt from "jsonwebtoken"
 
-export const isAuthorized = catchAsync(async (req, res, next) => {
+export const isAuthorized = catchAsync(async (req, _res, next) => {
     const { authorization } = req.headers
     const bearer = authorization.split(' ')
     if (bearer.length != 2) throw new Error('Authorization failed.')
@@ -13,7 +13,7 @@ export const isAuthorized = catchAsync(async (req, res, next) => {
     next()
 })
 
-export const isAdmin = catchAsync(async (req, res, next) => {
+export const isAdmin = catchAsync(async (req, _res, next) => {
     const { _id } = jwt.verify(req.headers.authorization.split(' ')[1], process.env.TOKEN_SECRET)
     const { designation } = await Member.findById(_id)
     if (designation !== 'Admin') throw new Error('You are not an admin.')

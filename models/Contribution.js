@@ -36,7 +36,7 @@ const contributionSchema = new Schema({
     },
     contributedOn: {
         type: Date,
-        default: new Date(),
+        default: Date.now,
         immutable: true
     },
     status: {

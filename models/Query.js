@@ -1,5 +1,6 @@
-import { Schema, model } from "mongoose";
-import { regex } from "../validation/regex.js";
+import { Schema, model } from "mongoose"
+import { regex } from "../validation/regex.js"
+
 const querySchema = new Schema({
     email: {
         type: String,
@@ -41,7 +42,7 @@ const querySchema = new Schema({
     },
     submittedOn: {
         type: Date,
-        default: new Date(),
+        default: Date.now,
         immutable: true
     },
     status: {
