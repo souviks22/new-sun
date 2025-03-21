@@ -18,6 +18,11 @@ const donationSchema = new Schema({
         required: true,
         immutable: true,
         min: [30, 'Your donation is lower than the minimum acceptable amount.']
+    },
+    paymentId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true
     }
 })
 

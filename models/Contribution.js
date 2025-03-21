@@ -6,6 +6,11 @@ const contributionSchema = new Schema({
         ref: 'Member',
         required: true
     },
+    paymentId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true
+    },
     amount: {
         type: Number,
         required: true,
@@ -38,14 +43,6 @@ const contributionSchema = new Schema({
         type: Date,
         default: Date.now,
         immutable: true
-    },
-    status: {
-        type: String,
-        enum: {
-            values: ['successful', 'pending', 'failed'],
-            message: 'The given contribution status cannot be accepted.'
-        },
-        default: 'pending'
     }
 })
 
