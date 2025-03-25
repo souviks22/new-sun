@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { paymentOrderHandler } from "../controllers/payment.controller"
+import { paymentOrderHandler, paymentVerificationHandler } from "../controllers/payment.controller.js"
 
 export const paymentRouter = Router()
 
@@ -8,5 +8,5 @@ paymentRouter.post('/order',
 )
 
 paymentRouter.post('/verify',
-    
+    paymentVerificationHandler
 )
