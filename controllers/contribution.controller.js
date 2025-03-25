@@ -9,7 +9,6 @@ export const newContributionHandler = catchAsync(async (req, res) => {
     const { _id } = jwt.verify(token, process.env.TOKEN_SECRET)
     const contributions = await Contribution.find({ contributor: _id }).sort({ endDate: -1 })
     const member = await Member.findById(_id)
-
     const latest = contributions.length ?
         new Date(contributions[0].endDate.getFullYear(), contributions[0].endDate.getMonth() + 1, 1) :
         member.joinedOn;
