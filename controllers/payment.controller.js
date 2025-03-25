@@ -16,7 +16,7 @@ export const paymentOrderHandler = catchAsync(async (req, res) => {
       currency,
       receipt: receipt || `order_rcpt_${Date.now()}`
     }
-    const order = await razorpay.orders.create(options);
+    const order = await razorpay.orders.create(options)
     res.status(201).json({ 
       success: true, 
       message: 'Payment order initiated',
@@ -25,17 +25,17 @@ export const paymentOrderHandler = catchAsync(async (req, res) => {
 })
 
 export const paymentVerificationHandler = catchAsync(async (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
     const generatedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(razorpay_order_id + '|' + razorpay_payment_id)
       .digest('hex');
     if (generatedSignature === razorpay_signature) {
-      await savePaymentDetails(razorpay_order_id, razorpay_payment_id);
+      const payment = await savePaymentDetails(razorpay_order_id, razorpay_payment_id)
       res.status(200).json({ 
         success: true, 
         message: 'Payment verified successfully', 
-        data : { paymentId: razorpay_payment_id } 
+        data : { payment } 
       });
     } else {
       res.status(400).json({ 
@@ -52,9 +52,9 @@ export const savePaymentDetails = async (orderId, paymentId) => {
       { orderId },
       { paymentId, status: "completed" },
       { new: true, upsert: true }
-    );
-    console.log("Payment saved:", payment);
+    )
+    return payment
   } catch (error) {
-    console.error("Error saving payment:", error);
+    return null
   }
 }
