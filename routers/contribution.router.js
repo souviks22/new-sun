@@ -15,6 +15,7 @@ contributionRouter.post('/',
     header('authorization').exists(),
     body('amount').exists(),
     body('endDate').exists(),
+    body('paymentId').exists(),
     isAuthorized,
     newContributionHandler
 )
