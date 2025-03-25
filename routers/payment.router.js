@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { paymentOrderHandler, paymentVerificationHandler } from "../controllers/payment.controller"
+import { paymentOrderHandler, paymentVerificationHandler } from "../controllers/payment.controller.js"
 import { body } from "express-validator"
 
 export const paymentRouter = Router()
