@@ -1,17 +1,20 @@
 import { Schema, model } from "mongoose"
-
+import { regex } from "../validation/regex.js"
 const donationSchema = new Schema({
     name: {
         type: String,
         required: true
     },
+    phone: {
+        type: String,
+        required: true,
+        match: [regex.phone, 'Your mobile number is invalid.']
+    },
     email: {
         type: String
     },
     subjectedTo: {
-        type: Schema.Types.ObjectId,
-        ref: 'Project',
-        required: true
+        type: String
     },
     amount: {
         type: Number,
