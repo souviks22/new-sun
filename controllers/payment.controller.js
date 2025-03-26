@@ -30,11 +30,11 @@ export const paymentVerificationHandler = catchAsync(async (req, res) => {
     .update(razorpay_order_id + '|' + razorpay_payment_id)
     .digest('hex');
   if (generatedSignature === razorpay_signature) {
-    await savePaymentDetails(razorpay_order_id, razorpay_payment_id);
+    const { data } = await savePaymentDetails(razorpay_order_id, razorpay_payment_id);
     res.status(200).json({
       success: true,
       message: 'Payment verified successfully',
-      data: { paymentId: razorpay_payment_id }
+      data: { data }
     });
   } else {
     res.status(400).json({
@@ -53,6 +53,7 @@ export const savePaymentDetails = async (orderId, paymentId) => {
       { new: true, upsert: true }
     );
     console.log("Payment saved:", payment);
+    return { data: payment }
   } catch (error) {
     console.error("Error saving payment:", error);
   }
