@@ -1,4 +1,6 @@
+import { v2 as cloudinary } from "cloudinary"
 import { Member } from "../models/Member.js"
+import { uploadStreamToCloudinary } from "../utility/cloudinary.js"
 
 import catchAsync from "../errors/async.js"
 
@@ -16,12 +18,17 @@ export const fetchMemberHandler = catchAsync(async (req, res) => {
 export const updateMemberHandler = catchAsync(async (req, res) => {
     const { id } = req.params
     const { update } = req.body
-    const member = await Member.findByIdAndUpdate(id, update, { runValidators: true })
+    const member = await Member.findById(id);
     if (!member) throw new Error('Member not found.')
+    if (req.file) {
+        update.image = await uploadStreamToCloudinary(req.file.buffer, 'member-profiles', member.email)
+        await cloudinary.uploader.destroy(member.image?.id)
+    }
+    const updated = await Member.findByIdAndUpdate(id, update, { runValidators: true })
     res.status(201).json({
         success: true,
         message: 'Member details are updated.',
-        data: { member }
+        data: { member: updated }
     })
 })
 
