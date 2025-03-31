@@ -1,7 +1,6 @@
 import { Router } from "express"
-import { paymentOrderHandler, paymentVerificationHandler } from "../controllers/payment.controller.js"
 import { body } from "express-validator"
-
+import { paymentOrderHandler, paymentVerificationHandler } from "../controllers/payment.controller.js"
 export const paymentRouter = Router()
 
 paymentRouter.post('/order',
@@ -10,8 +9,6 @@ paymentRouter.post('/order',
 )
 
 paymentRouter.post('/verify',
-    body('razorpay_order_id').exists(),
-    body('razorpay_payment_id').exists(),
-    body('razorpay_signature').exists(),
-    paymentVerificationHandler
+    paymentVerificationHandler,
+
 )

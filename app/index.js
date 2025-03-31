@@ -1,15 +1,16 @@
 import cors from "cors"
 import express from "express"
+import helmet from "helmet"
 import mongoose from "mongoose"
 import morgan from "morgan"
-import helmet from "helmet"
 
 import { authRouter } from "../routers/auth.router.js"
-import { memberRouter } from "../routers/member.router.js"
 import { contributionRouter } from "../routers/contribution.router.js"
+import { donationRouter } from "../routers/donation.router.js"
 import { feedbackRouter } from "../routers/feedback.router.js"
-import { queryRouter } from "../routers/query.router.js"
+import { memberRouter } from "../routers/member.router.js"
 import { paymentRouter } from "../routers/payment.router.js"
+import { queryRouter } from "../routers/query.router.js"
 
 const app = express()
 process.env.NODE_ENV !== 'production' && process.loadEnvFile()
@@ -28,7 +29,7 @@ app.use('/contributions', contributionRouter)
 app.use('/feedbacks', feedbackRouter)
 app.use('/queries', queryRouter)
 app.use('/payments', paymentRouter)
-
+app.use('/donate', donationRouter)
 app.get('/', (_req, res) => {
     res.status(200).json({
         success: true,
