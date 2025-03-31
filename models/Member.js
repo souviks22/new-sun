@@ -47,7 +47,8 @@ const memberSchema = new Schema({
         }
     },
     image: {
-        type: String
+        url: { type: String },
+        id: { type: String }
     },
     address: {
         type: String

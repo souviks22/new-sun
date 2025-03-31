@@ -1,7 +1,7 @@
 import { Member } from "../models/Member.js"
 import { regex } from "../validation/regex.js"
 import { sendEmailFromServer } from "../utility/mailer.js"
-import { uploadToCloudinary } from "../utility/cloudinary.js"
+import { uploadStreamToCloudinary, uploadToCloudinary } from "../utility/cloudinary.js"
 import { otpVerificationEmail, signupConfirmationEmail } from "../utility/emails.js"
 
 import catchAsync from "../errors/async.js"
@@ -25,6 +25,7 @@ export const signupInitiationHandler = catchAsync(async (req, res) => {
     authBuffer[email] = {
         otp,
         details: { ...req.body, password: hashedPw },
+        image: req.file,
         createdAt: Date.now()
     }
     sendEmailFromServer(email, 'Team New Sun Email Verification', otpVerificationEmail(req.body.firstname, otp))
@@ -39,12 +40,13 @@ export const signupVerificationHandler = catchAsync(async (req, res) => {
     if (!authBuffer[email]) throw new Error('We do not have your email waiting for signup.')
     if (authBuffer[email].otp !== otp) throw new Error('Your verification code is inaccurate.')
     if (Date.now() - authBuffer[email].createdAt > OTP_EXPIRATION_TIME) throw new Error('Your verification code is expired')
-    const member = new Member(authBuffer[email].details)
+    const image = await uploadStreamToCloudinary(authBuffer[email].image?.buffer, 'member-profiles', email)
+    const member = new Member({ ...authBuffer[email].details, image })
     await member.save()
     const path = `${email}.png`
     await QRCode.toFile(path, `${process.env.FRONTEND_DOMAIN}/members/${member._id}`)
-    const url = await uploadToCloudinary(path, 'qr-codes')
-    sendEmailFromServer(email, 'Team New Sun Joining Confirmation', signupConfirmationEmail(member.firstname, url))
+    const qrCode = await uploadToCloudinary(path, 'qr-codes')
+    sendEmailFromServer(email, 'Team New Sun Joining Confirmation', signupConfirmationEmail(member.firstname, qrCode.url))
     fs.unlinkSync(path)
     const token = jwt.sign({ _id: member._id }, process.env.TOKEN_SECRET, { expiresIn: '30d' })
     res.status(200).json({

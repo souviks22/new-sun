@@ -2,6 +2,7 @@ import { Router } from "express"
 import { body, header } from "express-validator"
 import { authPersistenceHandler, signinHandler, signupInitiationHandler, signupVerificationHandler } from "../controllers/auth.controller.js"
 import { isAuthorized } from "../middlewares/authorization.js"
+import { formMediaUploader } from "../utility/cloudinary.js"
 
 export const authRouter = Router()
 
@@ -14,6 +15,7 @@ authRouter.post('/signup',
     body('phone').exists(),
     body('sex').exists(),
     body('bloodGroup').exists(),
+    formMediaUploader.single('image'),
     signupInitiationHandler
 )
 
