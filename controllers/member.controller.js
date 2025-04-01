@@ -20,10 +20,6 @@ export const updateMemberHandler = catchAsync(async (req, res) => {
     const { update } = req.body
     const member = await Member.findById(id);
     if (!member) throw new Error('Member not found.')
-    if (req.file) {
-        update.image = await uploadStreamToCloudinary(req.file.buffer, 'member-profiles', member.email)
-        await cloudinary.uploader.destroy(member.image?.id)
-    }
     const updated = await Member.findByIdAndUpdate(id, update, { runValidators: true })
     res.status(201).json({
         success: true,
