@@ -20,20 +20,24 @@ export const uploadToCloudinary = async (uri, folder) => {
 }
 
 export const uploadStreamToCloudinary = async (buffer, folder, filename) => {
-    if (!buffer) return null
-    const { secure_url: url, public_id: id } = new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream({
-            folder: `new-sun/${folder}`,
-            filename_override: filename
-        },
+    if (!buffer) return null;
+
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: `new-sun/${folder}`,
+                filename_override: filename
+            },
             (err, res) => {
                 if (err) reject(err)
-                else resolve(res)
-            })
-        Readable.from(buffer).pipe(stream)
-    })
-    return { url, id }
-}
+                    else {
+                    resolve({ url: res.secure_url, id: res.public_id });
+                }
+            }
+        );
+        Readable.from(buffer).pipe(stream);
+    });
+};
 
 export const formMediaUploader = multer({
     storage: multer.memoryStorage()
