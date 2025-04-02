@@ -7,6 +7,7 @@ import { formMediaUploader } from "../utility/cloudinary.js"
 export const authRouter = Router()
 
 authRouter.post('/signup',
+    formMediaUploader.single('image'),
     body('email').exists(),
     body('password').exists(),
     body('firstname').exists(),
@@ -15,7 +16,6 @@ authRouter.post('/signup',
     body('phone').exists(),
     body('sex').exists(),
     body('bloodGroup').exists(),
-    formMediaUploader.single('image'),
     signupInitiationHandler
 )
 
