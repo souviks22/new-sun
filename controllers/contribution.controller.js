@@ -1,11 +1,13 @@
-import { Contribution } from "../models/Contribution.js"
-import { Member } from "../models/Member.js"
-
 import jwt from "jsonwebtoken"
 import catchAsync from "../errors/async.js"
+import { Contribution } from "../models/Contribution.js"
+import { Member } from "../models/Member.js"
+import { contributionReceivedEmail } from "../utility/emails.js"
+import { sendEmailFromServer } from "../utility/mailer.js"
 
 export const newContributionHandler = catchAsync(async (req, res) => {
     const token = req.headers.authorization.split(' ')[1]
+    const { amount, endDate, paymentId } = req.body;
     const { _id } = jwt.verify(token, process.env.TOKEN_SECRET)
     const contributions = await Contribution.find({ contributor: _id }).sort({ endDate: -1 })
     const member = await Member.findById(_id)
@@ -14,6 +16,7 @@ export const newContributionHandler = catchAsync(async (req, res) => {
         member.joinedOn;
     const contribution = new Contribution({ contributor: _id, startDate: latest, ...req.body })
     await contribution.save()
+    sendEmailFromServer(member.email, 'Contribution Recieved-Team New Sun Foundation', contributionReceivedEmail(member.fullname, amount, latest, endDate, paymentId))
     res.status(201).json({
         success: true,
         message: 'Your contribution is accepted successfully.',
