@@ -15,7 +15,6 @@ authRouter.post('/signup',
     body('dob').exists(),
     body('phone').exists(),
     body('sex').exists(),
-    body('bloodGroup').exists(),
     signupInitiationHandler
 )
 

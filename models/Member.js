@@ -31,8 +31,7 @@ const memberSchema = new Schema({
     },
     dob: {
         type: Date,
-        required: true,
-        immutable: true
+        required: true
     },
     phone: {
         type: String,
@@ -63,7 +62,6 @@ const memberSchema = new Schema({
     },
     bloodGroup: {
         type: String,
-        required: true,
         enum: {
             values: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'],
             message: 'Your blood group cannot be accepted.'
