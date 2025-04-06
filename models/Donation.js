@@ -11,7 +11,8 @@ const donationSchema = new Schema({
         match: [regex.phone, 'Your mobile number is invalid.']
     },
     email: {
-        type: String
+        type: String,
+        required: true
     },
     subjectedTo: {
         type: String
@@ -20,7 +21,7 @@ const donationSchema = new Schema({
         type: Number,
         required: true,
         immutable: true,
-        min: [30, 'Your donation is lower than the minimum acceptable amount.']
+        min: [50, 'Your donation is lower than the minimum acceptable amount.']
     },
     paymentId: {
         type: Schema.Types.ObjectId,

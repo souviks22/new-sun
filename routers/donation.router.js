@@ -5,6 +5,7 @@ export const donationRouter = Router()
 
 donationRouter.post('/',
     body('name').exists(),
+    body('email').exists(),
     body('phone').exists(),
     body('amount').exists(),
     body('paymentId').exists(),
