@@ -205,7 +205,7 @@ export const contributionReceivedEmail = (name, amount, startDate, endDate, tran
                               ${transactionId ? `<p style="color: #333333; font-size: 16px; margin-top: 10px;">Transaction ID: ${transactionId}</p>` : ''}
                               <p style="color: #333333; font-size: 18px; margin-top: 20px;">Your continued support makes a significant difference in helping us achieve our mission at TEAM NEW SUN FOUNDATION. We are committed to using your contributions effectively to support our cause throughout this period.</p>
                               <p style="color: #333333; font-size: 18px;">Thank you once again for your kindness and generosity.</p>
-                              <p style="color: #333333; font-size: 18px;">Sincerely,<br>The TEAM NEW SUN FOUNDATION Team</p>
+                              <p style="color: #333333; font-size: 18px;">Sincerely,<br>TEAM NEW SUN FOUNDATION</p>
                           </td>
                       </tr>
                   </table>
