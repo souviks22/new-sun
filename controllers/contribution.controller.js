@@ -6,17 +6,16 @@ import { contributionReceivedEmail } from "../utility/emails.js"
 import { sendEmailFromServer } from "../utility/mailer.js"
 
 export const newContributionHandler = catchAsync(async (req, res) => {
-    /*const token = req.headers.authorization.split(' ')[1]
-    const { amount, endDate, paymentId } = req.body;
-    const { _id } = jwt.verify(token, process.env.TOKEN_SECRET)
-    const contributions = await Contribution.find({ contributor: _id }).sort({ endDate: -1 })
-    const member = await Member.findById(_id)*/
-    const { amount, endDate, paymentId, contributor } = req.body; 
+    const { amount, endDate, paymentId, contributor } = req.body;
+    const contributions = await Contribution.find({ contributor: contributor }).sort({ endDate: -1 })
     const member = await Member.findById(contributor);
+    if (!member) {
+        return res.status(404).json({ success: false, message: 'Member not found.' });
+    }
     const latest = contributions.length ?
         new Date(contributions[0].endDate.getFullYear(), contributions[0].endDate.getMonth() + 1, 1) :
         member.joinedOn;
-    const contribution = new Contribution({ contributor: _id, startDate: latest, ...req.body })
+    const contribution = new Contribution({ contributor: contributor, startDate: latest, ...req.body })
     await contribution.save()
     sendEmailFromServer(member.email, 'Contribution Recieved-Team New Sun Foundation', contributionReceivedEmail(member.fullname, amount, latest, endDate, paymentId))
     res.status(201).json({
