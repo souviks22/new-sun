@@ -91,12 +91,11 @@ async function handleRazorpayWebhookEvents(payload, res) {
         console.log('Donation processed via webhook using newDonationHandler');
       }
       if (payment && paymentType === 'contribution') {
-        const { name, email, _id } = paymentNotes;
+        const { endDate, _id } = paymentNotes;
         const donationDataForHandler = {
           body: {
-            name: name,
-            email: email ? email.toLowerCase() : '',
             amount: paymentAmount / 100,
+            endDate: endDate,
             paymentId: webhook_payment_id,
             contributor: _id
           },
