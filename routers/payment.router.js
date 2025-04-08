@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body } from "express-validator"
-import { paymentOrderHandler, paymentVerificationHandler } from "../controllers/payment.controller.js"
+import { paymentOrderHandler, paymentVerificationHandler, razorpayWebhookHandler } from "../controllers/payment.controller.js"
 export const paymentRouter = Router()
 
 paymentRouter.post('/order',
@@ -12,3 +12,6 @@ paymentRouter.post('/verify',
     paymentVerificationHandler,
 
 )
+
+paymentRouter.post('/razorpay/webhook',
+    razorpayWebhookHandler);
