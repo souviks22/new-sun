@@ -2,8 +2,8 @@ import crypto from "crypto"
 import Razorpay from "razorpay"
 import catchAsync from "../errors/async.js"
 import { Payment } from "../models/Payment.js"
-import { newDonationHandler } from "./donation.controller.js"
 import { newContributionHandler } from "./contribution.controller.js"
+import { newDonationHandler } from "./donation.controller.js"
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -80,18 +80,19 @@ async function handleRazorpayWebhookEvents(payload, res) {
       const payment = await savePaymentDetails(webhook_order_id, webhook_payment_id, paymentType, 'completed', paymentAmount, data.payment.entity.currency);
 
       if (payment && paymentType === 'donation') {
-        const { name, email } = paymentNotes;
+        const { name, email, phone } = paymentNotes;
         const donationDataForHandler = {
           body: {
             name: name,
             email: email ? email.toLowerCase() : '',
+            phone: phone,
             amount: paymentAmount / 100,
             paymentId: webhook_payment_id,
           },
         };
         await newDonationHandler(donationDataForHandler, res);
         console.log('Donation processed via webhook using newDonationHandler');
-      }else if (payment && paymentType === 'contribution') {
+      } else if (payment && paymentType === 'contribution') {
         const { endDate, _id } = paymentNotes;
         const contributionDataForHandler = {
           body: {
