@@ -87,7 +87,7 @@ async function handleRazorpayWebhookEvents(payload, res) {
             email: email ? email.toLowerCase() : '',
             phone: phone,
             amount: paymentAmount / 100,
-            paymentId: webhook_payment_id,
+            paymentId: payment._id,
           },
         };
         await newDonationHandler(donationDataForHandler, res);
@@ -98,7 +98,7 @@ async function handleRazorpayWebhookEvents(payload, res) {
           body: {
             amount: paymentAmount / 100,
             endDate: endDate,
-            paymentId: webhook_payment_id,
+            paymentId: payment._id,
             contributor: _id
           },
         };
