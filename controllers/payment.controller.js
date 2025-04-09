@@ -72,14 +72,12 @@ async function handleRazorpayWebhookEvents(payload, res) {
   const data = payload.payload;
   switch (event) {
     case 'payment.captured':
-      console.log('Webhook - Payment Captured:', data.payment.entity);
       const { order_id: webhook_order_id, id: webhook_payment_id, amount: paymentAmount } = data.payment.entity;
       const paymentNotes = data.payment.entity.notes || {};
       const paymentType = paymentNotes.type || 'unknown';
 
       const payment = await savePaymentDetails(webhook_order_id, webhook_payment_id, paymentType, 'completed', paymentAmount, data.payment.entity.currency);
-
-      if (payment && paymentType === 'donation') {
+      if (payment && paymentType === "donation") {
         const { name, email, phone } = paymentNotes;
         const donationDataForHandler = {
           body: {
@@ -87,23 +85,21 @@ async function handleRazorpayWebhookEvents(payload, res) {
             email: email ? email.toLowerCase() : '',
             phone: phone,
             amount: paymentAmount / 100,
-            paymentId: payment._id,
+            paymentId: payment._id
           },
         };
         await newDonationHandler(donationDataForHandler, res);
-        console.log('Donation processed via webhook using newDonationHandler');
-      } else if (payment && paymentType === 'contribution') {
-        const { endDate, _id } = paymentNotes;
+      } else if (payment && paymentType === "contribution") {
+        const { endDate, contributor } = paymentNotes;
         const contributionDataForHandler = {
           body: {
             amount: paymentAmount / 100,
             endDate: endDate,
             paymentId: payment._id,
-            contributor: _id
+            contributor: contributor
           },
         };
         await newContributionHandler(contributionDataForHandler, res);
-        console.log('Donation processed via webhook using newDonationHandler');
       }
       break;
     case 'payment.failed':
