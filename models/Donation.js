@@ -27,6 +27,11 @@ const donationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Payment',
         required: true
+    },
+    status: {
+        type: String,
+        enum: ["pending", "completed", "failed"],
+        default: "pending"
     }
 })
 
