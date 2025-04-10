@@ -6,8 +6,7 @@ const paymentSchema = new Schema({
         required: true 
     },
     paymentId: { 
-        type: String,
-        required: true 
+        type: String
     },
     status: { 
         type: String, 

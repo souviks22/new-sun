@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body } from "express-validator"
-import { newDonationHandler } from "../controllers/donation.controller.js"
+import { donationStatushandler, newDonationHandler } from "../controllers/donation.controller.js"
 export const donationRouter = Router()
 
 donationRouter.post('/',
@@ -12,3 +12,6 @@ donationRouter.post('/',
     newDonationHandler
 )
 
+donationRouter.get('/status/:referenceId',
+    donationStatushandler
+)

@@ -43,6 +43,11 @@ const contributionSchema = new Schema({
         type: Date,
         default: Date.now,
         immutable: true
+    },
+    status: {
+        type: String,
+        enum: ["pending", "completed", "failed"],
+        default: "pending"
     }
 })
 
