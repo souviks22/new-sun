@@ -1,6 +1,9 @@
 import { Router } from "express"
 import { body, header } from "express-validator"
-import { authPersistenceHandler, generateOTPHandler, resetPasswordHandler, signinHandler, signupInitiationHandler, signupVerificationHandler, verifyOTPHandler } from "../controllers/auth.controller.js"
+import {
+    authPersistenceHandler, forgotPasswordInitiationHandler, forgotPasswordVerificationHandler,
+    resetPasswordHandler, signinHandler, signupInitiationHandler, signupVerificationHandler
+} from "../controllers/auth.controller.js"
 import { isAuthorized } from "../middlewares/authorization.js"
 import { formMediaUploader } from "../utility/cloudinary.js"
 
@@ -38,17 +41,17 @@ authRouter.get('/authenticate',
 
 authRouter.post('/forgot-password',
     body('email').exists(),
-    generateOTPHandler
+    forgotPasswordInitiationHandler
 )
 
-authRouter.post('/forgot-password/verify-otp',
+authRouter.post('/forgot-password-verify',
     body('email').exists(),
     body('otp').exists(),
-    verifyOTPHandler
+    forgotPasswordVerificationHandler
 )
 
 authRouter.post('/reset-password',
-    body('_id').exists(),
     body('password').exists(),
+    isAuthorized,
     resetPasswordHandler
 )
