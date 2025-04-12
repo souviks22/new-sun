@@ -1,3 +1,4 @@
+import { Member } from "../models/Member.js"
 import { Payment, PaymentStatus } from "../models/Payment.js"
 import { saveContribution } from "./contribution.controller.js"
 import { saveDonation } from "./donation.controller.js"
@@ -100,6 +101,7 @@ export const savePaymentDetails = async req => {
         case PaymentIntent.CONTRIBUTION:
             const { contributor, amount: contribution, startDate, endDate } = await saveContribution(req)
             if (status === PaymentStatus.COMPLETED) {
+                await Member.findByIdAndUpdate(contributor._id, { lastContributionOn: endDate })
                 sendEmailFromServer(contributor.email, 'Contribution Received', contributionReceivedEmail(contributor.firstname, contribution / 100, getFormattedDate(startDate), getFormattedDate(endDate)))
             }
             break

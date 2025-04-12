@@ -8,7 +8,7 @@ export const saveContribution = async req => {
     const { contributor, payment, amount, endDate } = req.body
     const member = await Member.findById(contributor)
     if (!member) throw new Error('You are not a member yet.')
-    const startDate = member.lastContributionOn
+    const startDate = new Date(member.lastContributionOn.getFullYear(), member.lastContributionOn.getMonth() + 1, 1)
     return await Contribution.findOneAndUpdate(
         { payment },
         { contributor, payment, amount, startDate, endDate },
@@ -25,11 +25,9 @@ export const newContributionHandler = catchAsync(async (req, res) => {
     })
 })
 
-export const getDueContributions = async (memberId, contributions) => {
+export const getDueContributions = async memberId => {
     const member = await Member.findById(memberId)
-    const latest = contributions.length ?
-        new Date(contributions[0].endDate.getFullYear(), contributions[0].endDate.getMonth() + 1, 1) :
-        member.joinedOn
+    const latest = member.lastContributionOn
     const due = []
     const today = new Date()
     while (today.getMonth() >= latest.getMonth() || today.getFullYear() > latest.getFullYear()) {
@@ -47,9 +45,10 @@ export const fetchContributionsHandler = catchAsync(async (req, res) => {
         .find({ contributor: _id })
         .sort({ endDate: -1 })
         .populate('payment')
-    const completed = contributions.filter(c => c.payment.status === 'completed')
-    const totalAmount = completed.reduce((current, contribution) => current + contribution.amount, 0)
-    const due = await getDueContributions(_id, completed)
+    const totalAmount = contributions
+        .filter(c => c.payment.status === 'completed')
+        .reduce((current, contribution) => current + contribution.amount, 0)
+    const due = await getDueContributions(_id)
     res.status(200).json({
         success: true,
         message: 'Your contribution history is retrieved.',
