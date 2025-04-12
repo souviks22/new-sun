@@ -1,168 +1,116 @@
-import crypto from "crypto";
-import Razorpay from "razorpay";
-import { newContributionHandler } from "../controllers/contribution.controller.js";
-import { newDonationHandler } from "../controllers/donation.controller.js";
-import catchAsync from "../errors/async.js";
-import { Contribution } from "../models/Contribution.js";
-import { Donation } from "../models/Donation.js";
-import { Member } from "../models/Member.js";
-import { Payment } from "../models/Payment.js";
-import { contributionReceivedEmail, donationReceivedEmail } from "../utility/emails.js";
-import { sendEmailFromServer } from "../utility/mailer.js";
+import { Payment, PaymentStatus } from "../models/Payment.js"
+import { saveContribution } from "./contribution.controller.js"
+import { saveDonation } from "./donation.controller.js"
+import { sendEmailFromServer } from "../utility/mailer.js"
+import { contributionReceivedEmail, donationReceivedEmail } from "../utility/emails.js"
+
+import crypto from "crypto"
+import Razorpay from "razorpay"
+import catchAsync from "../errors/async.js"
+
+process.env.NODE_ENV !== 'production' && process.loadEnvFile()
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+})
+
+const getPaymentSignature = body => crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(body)
+    .digest('hex')
+
+const getFormattedDate = date => date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+export const PaymentIntent = { CONTRIBUTION: 'contribution', DONATION: 'donation' }
+
 
 export const paymentOrderHandler = catchAsync(async (req, res) => {
-  const { amount, currency = "INR", receipt, type, data } = req.body;
-  const notes = {
-    receipt: receipt || `order_rcpt_${Date.now()}`,
-    type: type,
-    ...data,
-  };
-  const options = {
-    amount: amount * 100,
-    currency,
-    receipt: notes.receipt,
-    notes: notes,
-  };
-  const order = await razorpay.orders.create(options);
-  const payment = await Payment.create({
-    orderId: order.id,
-    amount: amount * 100,
-    currency: currency,
-    notes: { type, ...data }
-  });
-  let recordId;
-  if (type === "donation") {
-    const donationData = {
-      ...data,
-      amount: amount,
-      paymentId: payment._id
-    };
-    const donationResult = await newDonationHandler(donationData, res);
-    recordId = donationResult?.data?._id;
-    console.log('Donation initiated via handler on order creation');
-  } else if (type === "contribution") {
-    const contributionData = {
-      ...data,
-      amount: amount,
-      paymentId: payment._id
-    };
-    const result = await newContributionHandler(contributionData, res);
-    recordId = result?.data?._id;
-  }
-
-  if (!res.headersSent) {
+    const { amount, intent } = req.body
+    const order = await razorpay.orders.create({
+        amount: amount * 100,
+        currency: 'INR',
+        receipt: `order_rcpt_${Date.now()}`,
+        notes: { intent }
+    })
+    req.body.intent = intent
+    req.body.orderId = order.id
+    req.body.status = PaymentStatus.PENDING
+    await savePaymentDetails(req)
     res.status(201).json({
-      success: true,
-      message: 'Payment order initiated and corresponding record initiated',
-      data: { order, paymentId: payment._id, recordId: recordId }
-    });
-  }
-});
+        success: true,
+        message: 'Payment order initiated.',
+        data: { order }
+    })
+})
 
 export const paymentVerificationHandler = catchAsync(async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-  const generatedSignature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-    .update(razorpay_order_id + '|' + razorpay_payment_id)
-    .digest('hex');
-  if (generatedSignature === razorpay_signature) {
-    const payment = await savePaymentDetails(razorpay_order_id, razorpay_payment_id, undefined, 'completed');
-    res.status(200).json({
-      success: true,
-      message: 'Payment verified successfully',
-      data: { payment }
-    });
-  } else {
-    res.status(400).json({
-      success: false,
-      message: 'Invalid signature'
-    });
-  }
-});
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
+    const body = razorpay_order_id + '|' + razorpay_payment_id
+    req.body.orderId = razorpay_order_id
+    req.body.paymentId = razorpay_payment_id
+    req.body.status = PaymentStatus.COMPLETED
+    if (getPaymentSignature(body) === razorpay_signature) {
+        await savePaymentDetails(req)
+        res.status(200).json({
+            success: true,
+            message: 'Payment verified successfully.'
+        })
+    } else {
+        res.status(400).json({
+            success: false,
+            message: 'We could not verify your payment.'
+        })
+    }
+})
 
 export const razorpayWebhookHandler = catchAsync(async (req, res) => {
-  const payload = JSON.stringify(req.body);
-  const digest = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(payload).digest('hex');
-
-  if (digest === req.headers['x-razorpay-signature']) {
-    console.log('Razorpay Webhook Signature Verified!');
-    await handleRazorpayWebhookEvents(req.body);
-    res.status(200).send('OK');
-  } else {
-    console.error('Razorpay Webhook Signature Verification Failed!');
-    res.status(400).send('Bad Request');
-  }
-});
-
-async function handleRazorpayWebhookEvents(payload) {
-  const event = payload.event;
-  const data = payload.payload;
-  switch (event) {
-    case 'payment.captured':
-      const { order_id: webhook_order_id, id: webhook_payment_id, amount: paymentAmount, currency: paymentCurrency } = data.payment.entity;
-      try {
-        const payment = await savePaymentDetails(webhook_order_id, webhook_payment_id, 'completed');
-        if (payment) {
-          const paymentNotes = data.payment.entity.notes || {};
-          const paymentType = paymentNotes.type;
-          if (paymentType === "donation") {
-            const donation = await Donation.findOneAndUpdate(
-              { paymentId: payment._id },
-              { status: 'completed' }
-            );
-            if (donation) {
-              sendEmailFromServer(paymentNotes.email, 'Donation Successful-Team New Sun Foundation', donationReceivedEmail(paymentNotes.name, paymentAmount / 100, payment._id));
-              console.log('Donation payment successful, status updated and email sent.');
-            }
-          } else if (paymentType === "contribution") {
-            const contribution = await Contribution.findOneAndUpdate(
-              { paymentId: payment._id },
-              { status: 'completed' }
-            );
-            if (contribution) {
-              const member = await Member.findById(contribution.contributor);
-              if (member) {
-                sendEmailFromServer(
-                  member.email, 'Contribution Received-Team New Sun Foundation', contributionReceivedEmail(member.fullname, paymentAmount / 100, contribution.startDate, contribution.endDate, contribution.paymentId));
-                console.log('Contribution payment successful, status updated and email sent.');
-              }
-            }
-          }
+    const body = JSON.stringify(req.body)
+    const { event, payload } = req.body
+    const { order_id, id, notes } = payload.payment.entity
+    req.body.orderId = order_id
+    req.body.paymentId = id
+    req.body.intent = notes.intent
+    if (getPaymentSignature(body) === req.headers['x-razorpay-signature']) {
+        switch (event) {
+            case 'payment.captured':
+                req.body.status = PaymentStatus.COMPLETED
+                break
+            case 'payment.failed':
+                req.body.status = PaymentStatus.FAILED
+                break
+            default:
+                res.status(400).send('Bad Request')
         }
-      } catch (error) {
-        console.error('Error handling payment.captured webhook:', error);
-      }
-      break;
-    case 'payment.failed':
-      console.log('Webhook - Payment Failed:', data.payment.entity);
-      const { order_id: failed_order_id, id: failed_payment_id } = data.payment.entity;
-      try {
-        await savePaymentDetails(failed_order_id, failed_payment_id, 'failed');
-        await Contribution.findOneAndUpdate({ paymentId: failed_payment_id }, { status: 'failed' });
-        await Donation.findOneAndUpdate({ paymentId: failed_payment_id }, { status: 'failed' });
-      } catch (error) {
-        console.error('Error handling payment.failed webhook:', error);
-      }
-      break;
-    default:
-      console.log('Webhook - Unhandled Event:', event);
-  }
-}
+        await savePaymentDetails(req)
+        res.status(200).send('OK')
+    } else {
+        res.status(400).send('Bad Request')
+    }
+})
 
-export const savePaymentDetails = async (orderId, paymentId, status) => {
-  try {
+export const savePaymentDetails = async req => {
+    const { intent, orderId, paymentId, status } = req.body
     const payment = await Payment.findOneAndUpdate(
-      { orderId },
-      { paymentId, status },
-      { new: true, upsert: true }
-    );
-    return payment;
-  } catch (error) {
-    return null;
-  }
-};
+        { orderId },
+        { orderId, paymentId, status },
+        { new: true, upsert: true }
+    )
+    req.body.payment = payment._id
+    switch (intent) {
+        case PaymentIntent.CONTRIBUTION:
+            const { contributor, amount: contribution, startDate, endDate } = await saveContribution(req)
+            if (status === PaymentStatus.COMPLETED) {
+                sendEmailFromServer(contributor.email, 'Contribution Received', contributionReceivedEmail(contributor.firstname, contribution / 100, getFormattedDate(startDate), getFormattedDate(endDate)))
+            }
+            break
+        case PaymentIntent.DONATION:
+            const { name, email, amount: donation, subjectedTo, } = await saveDonation(req)
+            if (status === PaymentStatus.COMPLETED) {
+                sendEmailFromServer(email, `Donation Received for ${subjectedTo}`, donationReceivedEmail(name, donation / 100, paymentId))
+            }
+            break
+        default:
+            throw new Error('Not a recognized intent.')
+    }
+    return payment
+}

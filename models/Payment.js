@@ -1,21 +1,21 @@
 import { Schema, model } from "mongoose"
 
+export const PaymentStatus = { PENDING: 'pending', COMPLETED: 'completed', FAILED: 'failed' }
+
 const paymentSchema = new Schema({
-    orderId: { 
-        type: String, 
-        required: true 
+    orderId: {
+        type: String,
+        required: true
     },
-    paymentId: { 
-        type: String
+    paymentId: String,
+    status: {
+        type: String,
+        enum: [PaymentStatus.PENDING, PaymentStatus.COMPLETED, PaymentStatus.FAILED],
+        default: PaymentStatus.PENDING
     },
-    status: { 
-        type: String, 
-        enum: ["pending", "completed", "failed"], 
-        default: "pending" 
-    },
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 })
 

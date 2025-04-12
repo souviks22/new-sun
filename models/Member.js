@@ -1,6 +1,8 @@
 import { Schema, model } from "mongoose"
 import { regex } from "../validation/regex.js"
 
+export const memberStatus = { ACTIVE: 'active', INACTIVE: 'inactive' }
+
 const memberSchema = new Schema({
     email: {
         type: String,
@@ -49,9 +51,7 @@ const memberSchema = new Schema({
         url: { type: String },
         id: { type: String }
     },
-    address: {
-        type: String
-    },
+    address: String,
     sex: {
         type: String,
         required: true,
@@ -75,10 +75,10 @@ const memberSchema = new Schema({
     status: {
         type: String,
         enum: {
-            values: ['Active', 'Inactive'],
+            values: [memberStatus.ACTIVE, memberStatus.INACTIVE],
             message: 'Your status cannot be accepted.'
         },
-        default: 'Active'
+        default: memberStatus.ACTIVE
     },
     designation: {
         type: String,
@@ -87,7 +87,8 @@ const memberSchema = new Schema({
             message: 'Your designation cannot be accepted.'
         },
         default: 'User'
-    }
+    },
+    lastContributionOn: Date
 })
 
 memberSchema.virtual('fullname').get(function () {
@@ -111,6 +112,13 @@ memberSchema.pre('findOneAndUpdate', function (next) {
         if (update.hasOwnProperty(field)) {
             return next(new Error(`Your ${field} cannot be changed.`))
         }
+    }
+    next()
+})
+
+memberSchema.pre('save', function (next) {
+    if (!this.lastContributionOn) {
+        this.lastContributionOn = this.joinedOn
     }
     next()
 })

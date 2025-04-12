@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { body, header } from "express-validator"
-import { contributionStatushandler, fetchContributionsHandler, newContributionHandler } from "../controllers/contribution.controller.js"
+import { fetchContributionsHandler, newContributionHandler } from "../controllers/contribution.controller.js"
 import { isAuthorized } from "../middlewares/authorization.js"
 
 export const contributionRouter = Router()
@@ -12,13 +12,11 @@ contributionRouter.get('/',
 )
 
 contributionRouter.post('/',
+    header('authorization').exists(),
+    body('contributor').exists(),
+    body('payment').exists(),
     body('amount').exists(),
     body('endDate').exists(),
-    body('paymentId').exists(),
-    body('contributor').exists(),
+    isAuthorized,
     newContributionHandler
-)
-
-contributionRouter.get('/status/:referenceId',
-    contributionStatushandler
 )

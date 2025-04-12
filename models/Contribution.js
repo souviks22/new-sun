@@ -6,7 +6,7 @@ const contributionSchema = new Schema({
         ref: 'Member',
         required: true
     },
-    paymentId: {
+    payment: {
         type: Schema.Types.ObjectId,
         ref: 'Payment',
         required: true
@@ -36,18 +36,13 @@ const contributionSchema = new Schema({
             validator: function (endDate) {
                 return endDate >= this.startDate
             },
-            message: 'Your contribution duration cannot be accpeted.'
+            message: 'Your contribution timeline cannot be accpeted.'
         }
     },
     contributedOn: {
         type: Date,
         default: Date.now,
         immutable: true
-    },
-    status: {
-        type: String,
-        enum: ["pending", "completed", "failed"],
-        default: "pending"
     }
 })
 

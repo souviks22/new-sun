@@ -1,7 +1,12 @@
 import { Schema, model } from "mongoose"
 import { regex } from "../validation/regex.js"
+
 const donationSchema = new Schema({
     name: {
+        type: String,
+        required: true
+    },
+    email: {
         type: String,
         required: true
     },
@@ -10,12 +15,9 @@ const donationSchema = new Schema({
         required: true,
         match: [regex.phone, 'Your mobile number is invalid.']
     },
-    email: {
+    subjectedTo: {
         type: String,
         required: true
-    },
-    subjectedTo: {
-        type: String
     },
     amount: {
         type: Number,
@@ -23,15 +25,10 @@ const donationSchema = new Schema({
         immutable: true,
         min: [50, 'Your donation is lower than the minimum acceptable amount.']
     },
-    paymentId: {
+    payment: {
         type: Schema.Types.ObjectId,
         ref: 'Payment',
         required: true
-    },
-    status: {
-        type: String,
-        enum: ["pending", "completed", "failed"],
-        default: "pending"
     }
 })
 
