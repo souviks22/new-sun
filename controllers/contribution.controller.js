@@ -25,13 +25,15 @@ export const newContributionHandler = catchAsync(async (req, res) => {
     })
 })
 
+export const getFormattedDate = date => date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+
 export const getDueContributions = async memberId => {
     const member = await Member.findById(memberId)
     const latest = member.lastContributionOn
     const due = []
     const today = new Date()
-    while (today.getMonth() >= latest.getMonth() || today.getFullYear() > latest.getFullYear()) {
-        due.push(`${today.getMonth() + 1}/${today.getFullYear()}`)
+    while (today.getMonth() > latest.getMonth() || today.getFullYear() > latest.getFullYear()) {
+        due.push(getFormattedDate(today))
         today.setMonth(today.getMonth() - 1)
     }
     return due

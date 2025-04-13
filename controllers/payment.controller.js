@@ -1,6 +1,6 @@
 import { Member } from "../models/Member.js"
 import { Payment, PaymentStatus } from "../models/Payment.js"
-import { saveContribution } from "./contribution.controller.js"
+import { saveContribution, getFormattedDate } from "./contribution.controller.js"
 import { saveDonation } from "./donation.controller.js"
 import { sendEmailFromServer } from "../utility/mailer.js"
 import { contributionReceivedEmail, donationReceivedEmail } from "../utility/emails.js"
@@ -21,7 +21,6 @@ const getPaymentSignature = body => crypto
     .update(body)
     .digest('hex')
 
-const getFormattedDate = date => date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
 export const PaymentIntent = { CONTRIBUTION: 'contribution', DONATION: 'donation' }
 
 

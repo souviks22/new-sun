@@ -118,7 +118,7 @@ memberSchema.pre('findOneAndUpdate', function (next) {
 
 memberSchema.pre('save', function (next) {
     if (!this.lastContributionOn) {
-        this.lastContributionOn = this.joinedOn
+        this.lastContributionOn = new Date(this.joinedOn.getFullYear(), this.joinedOn.getMonth() - 1, 1)
     }
     next()
 })
