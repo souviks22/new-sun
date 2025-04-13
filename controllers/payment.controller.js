@@ -100,7 +100,7 @@ export const savePaymentDetails = async (req, mailable = false) => {
     switch (intent) {
         case PaymentIntent.CONTRIBUTION:
             if (status === PaymentStatus.COMPLETED) {
-                const { contributor, amount: contribution, startDate, endDate } = await Contribution.findOne({ payment: payment._id })
+                const { contributor, amount: contribution, startDate, endDate } = await Contribution.findOne({ payment: payment._id }).populate('contributor')
                 await Member.findByIdAndUpdate(contributor._id, { lastContributionOn: endDate })
                 if (mailable) sendEmailFromServer(contributor.email, 'Contribution Received', contributionReceivedEmail(contributor.firstname, contribution, getFormattedDate(startDate), getFormattedDate(endDate)))
             } else await saveContribution(req)
