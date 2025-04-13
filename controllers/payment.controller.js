@@ -1,5 +1,7 @@
-import { Member } from "../models/Member.js"
 import { Payment, PaymentStatus } from "../models/Payment.js"
+import { Contribution } from "../models/Contribution.js"
+import { Donation } from "../models/Donation.js"
+import { Member } from "../models/Member.js"
 import { saveContribution, getFormattedDate } from "./contribution.controller.js"
 import { saveDonation } from "./donation.controller.js"
 import { sendEmailFromServer } from "../utility/mailer.js"
@@ -8,8 +10,6 @@ import { contributionReceivedEmail, donationReceivedEmail } from "../utility/ema
 import crypto from "crypto"
 import Razorpay from "razorpay"
 import catchAsync from "../errors/async.js"
-import { Contribution } from "../models/Contribution.js"
-import { Donation } from "../models/Donation.js"
 
 process.env.NODE_ENV !== 'production' && process.loadEnvFile()
 
@@ -24,7 +24,6 @@ const getPaymentSignature = body => crypto
     .digest('hex')
 
 export const PaymentIntent = { CONTRIBUTION: 'contribution', DONATION: 'donation' }
-
 
 export const paymentOrderHandler = catchAsync(async (req, res) => {
     const { amount, intent } = req.body
@@ -48,12 +47,12 @@ export const paymentOrderHandler = catchAsync(async (req, res) => {
 export const paymentVerificationHandler = catchAsync(async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
     const body = razorpay_order_id + '|' + razorpay_payment_id
-    req.body.orderId = razorpay_order_id
-    req.body.paymentId = razorpay_payment_id
-    req.body.status = PaymentStatus.COMPLETED
     if (getPaymentSignature(body) !== razorpay_signature) {
         throw new Error('We could not verify your payment.')
     }
+    req.body.orderId = razorpay_order_id
+    req.body.paymentId = razorpay_payment_id
+    req.body.status = PaymentStatus.COMPLETED
     const payment = await savePaymentDetails(req)
     res.status(200).json({
         success: true,
@@ -82,14 +81,14 @@ export const razorpayWebhookHandler = catchAsync(async (req, res) => {
         default:
             throw new Error('Invalid payment event detected.')
     }
-    await savePaymentDetails(req)
+    await savePaymentDetails(req, true)
     res.status(200).json({
         success: true,
         message: 'Payment verified successfully.'
     })
 })
 
-export const savePaymentDetails = async req => {
+export const savePaymentDetails = async (req, mailable = false) => {
     const { intent, orderId, paymentId, status } = req.body
     const payment = await Payment.findOneAndUpdate(
         { orderId },
@@ -103,13 +102,13 @@ export const savePaymentDetails = async req => {
             if (status === PaymentStatus.COMPLETED) {
                 const { contributor, amount: contribution, startDate, endDate } = await Contribution.findOne({ payment: payment._id })
                 await Member.findByIdAndUpdate(contributor._id, { lastContributionOn: endDate })
-                sendEmailFromServer(contributor.email, 'Contribution Received', contributionReceivedEmail(contributor.firstname, contribution, getFormattedDate(startDate), getFormattedDate(endDate)))
+                if (mailable) sendEmailFromServer(contributor.email, 'Contribution Received', contributionReceivedEmail(contributor.firstname, contribution, getFormattedDate(startDate), getFormattedDate(endDate)))
             } else await saveContribution(req)
             break
         case PaymentIntent.DONATION:
             if (status === PaymentStatus.COMPLETED) {
-                const { name, email, amount: donation, subjectedTo, } = await Donation.findOne({ payment: payment._id })
-                sendEmailFromServer(email, `Donation Received for ${subjectedTo}`, donationReceivedEmail(name, donation, paymentId))
+                const { name, email, amount: donation, subjectedTo } = await Donation.findOne({ payment: payment._id })
+                if (mailable) sendEmailFromServer(email, `Donation Received for ${subjectedTo}`, donationReceivedEmail(name, donation, paymentId))
             } else await saveDonation(req)
             break
         default:
