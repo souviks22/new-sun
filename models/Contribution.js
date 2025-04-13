@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose"
 
+const CONTRIBUTION_THRESHOLD = 50
+
 const contributionSchema = new Schema({
     contributor: {
         type: Schema.Types.ObjectId,
@@ -18,9 +20,9 @@ const contributionSchema = new Schema({
         validate: {
             validator: function (amount) {
                 const months = (this.endDate.getMonth() - this.startDate.getMonth() + 1) + 12 * (this.endDate.getFullYear() - this.startDate.getFullYear())
-                return amount / months >= 30
+                return amount / months >= CONTRIBUTION_THRESHOLD
             },
-            message: 'Your contribution is lower than the minimum amount of Rs. 30 per month.'
+            message: `Your contribution is lower than the minimum amount of Rs. ${CONTRIBUTION_THRESHOLD} per month.`
         }
     },
     startDate: {
@@ -29,9 +31,7 @@ const contributionSchema = new Schema({
     },
     endDate: {
         type: Date,
-        default: function () {
-            return this.startDate
-        },
+        required: true,
         validate: {
             validator: function (endDate) {
                 return endDate >= this.startDate
