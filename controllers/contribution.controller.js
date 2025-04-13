@@ -9,11 +9,9 @@ export const saveContribution = async req => {
     const member = await Member.findById(contributor)
     if (!member) throw new Error('You are not a member yet.')
     const startDate = new Date(member.lastContributionOn.getFullYear(), member.lastContributionOn.getMonth() + 1, 1)
-    return await Contribution.findOneAndUpdate(
-        { payment },
-        { contributor, payment, amount, startDate, endDate },
-        { new: true, upsert: true }
-    ).populate('contributor')
+    const contribution = new Contribution({ contributor, payment, amount, startDate, endDate })
+    await contribution.save()
+    return contribution
 }
 
 export const newContributionHandler = catchAsync(async (req, res) => {

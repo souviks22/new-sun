@@ -4,11 +4,9 @@ import catchAsync from "../errors/async.js"
 
 export const saveDonation = async req => {
     const { name, email, phone, subjectedTo, amount, payment } = req.body
-    return await Donation.findOneAndUpdate(
-        { payment },
-        { name, email, phone, subjectedTo, amount, payment },
-        { new: true, upsert: true }
-    )
+    const donation = new Donation({ name, email, phone, subjectedTo, amount, payment })
+    await donation.save()
+    return donation
 }
 
 export const newDonationHandler = catchAsync(async (req, res) => {
