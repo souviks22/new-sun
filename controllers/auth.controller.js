@@ -61,7 +61,7 @@ export const signupVerificationHandler = catchAsync(async (req, res) => {
 
 export const signinHandler = catchAsync(async (req, res) => {
     const { email, password } = req.body
-    const member = await Member.findOne({ email: email.toLowerCase() })
+    const member = await Member.findOne({ email: { $regex: email, $options: 'i' } })
     if (!member) throw new Error('Your email or password is/are inaccurate.')
     const isMatched = await bcrpyt.compare(password, member.password)
     if (!isMatched) throw new Error('Your email or password is/are inaccurate.')
@@ -86,7 +86,7 @@ export const authPersistenceHandler = catchAsync(async (req, res) => {
 
 export const forgotPasswordInitiationHandler = catchAsync(async (req, res) => {
     const { email } = req.body;
-    const member = await Member.findOne({ email: email.toLowerCase() })
+    const member = await Member.findOne({ email: { $regex: email, $options: 'i' } })
     if (!member) throw new Error('You are not a member yet.')
     const otp = generateNumericOTP()
     authBuffer[email] = { otp, createdAt: Date.now() }
