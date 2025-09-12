@@ -3,8 +3,9 @@ import nodemailer from "nodemailer"
 process.env.NODE_ENV !== 'production' && process.loadEnvFile()
 
 const transporter = nodemailer.createTransport({
-    host: process.env.MAIL_SERVICE_HOST,
-    port: process.env.MAIL_SERVICE_PORT,
+    service: 'gmail',
+    // host: process.env.MAIL_SERVICE_HOST,
+    // port: process.env.MAIL_SERVICE_PORT,
     secure: true,
     auth: {
         user: process.env.MAIL_ID,
