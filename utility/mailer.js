@@ -10,11 +10,12 @@ export const sendEmailFromServer = async (email, subject, message) => {
         key: process.env.MAIL_API_KEY
     })
     try {
-        await mg.messages.create('sandboxec2a21d381694bfeb9c2d9d8668fc408.mailgun.org', {
-            from: 'TNSF Admin <postmaster@sandboxec2a21d381694bfeb9c2d9d8668fc408.mailgun.org>',
+        await mg.messages.create('teamnewsunfoundation.org', {
+            from: 'TNS Foundation<no-reply@teamnewsunfoundation.org>',
             to: `You <${email}>`,
             subject,
-            html: message
+            html: message,
+            'h:X-Priority': 1
         })
     } catch (error) {
         console.error(error)
