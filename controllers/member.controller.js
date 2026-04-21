@@ -65,3 +65,35 @@ export const deleteMemberHandler = catchAsync(async (req, res) => {
         message: 'Member is deleted successfully.'
     })
 })
+
+export const getallMemberHandler = catchAsync(async (req, res) => {
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+    const skip = (page - 1) * limit;
+
+    const [members, total] = await Promise.all([
+        Member.find({ 'status': 'active' })
+            .select('-password')
+            .sort({ joinedOn: -1 })
+            .skip(skip)
+            .limit(limit),
+
+        Member.countDocuments({ 'status': "active" })
+    ]);
+
+    res.status(200).json({
+        success: true,
+        message: 'Member list retrieved',
+        data: {
+            members,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasNextPage: page * limit < total,
+                hasPrevPage: page > 1
+            }
+        }
+    });
+});

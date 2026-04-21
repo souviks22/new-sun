@@ -4,6 +4,7 @@ import helmet from "helmet"
 import mongoose from "mongoose"
 import morgan from "morgan"
 
+import { adminRouter } from "../routers/admin.router.js"
 import { authRouter } from "../routers/auth.router.js"
 import { contributionRouter } from "../routers/contribution.router.js"
 import { donationRouter } from "../routers/donation.router.js"
@@ -30,6 +31,7 @@ app.use('/feedbacks', feedbackRouter)
 app.use('/queries', queryRouter)
 app.use('/payments', paymentRouter)
 app.use('/donate', donationRouter)
+app.use('/admin', adminRouter)
 app.get('/', (_req, res) => {
     res.status(200).json({
         success: true,
