@@ -55,3 +55,81 @@ export const fetchContributionsHandler = catchAsync(async (req, res) => {
         data: { contributions, totalAmount, due }
     })
 })
+
+
+export const getContributions = catchAsync(async (req, res) => {
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+    const skip = (page - 1) * limit;
+
+    const result = await Contribution.aggregate([
+        {
+            $lookup: {
+                from: "payments",
+                localField: "payment",
+                foreignField: "_id",
+                as: "payment"
+            }
+        },
+        { $unwind: "$payment" },
+        {
+            $match: {
+                "payment.status": 'completed'
+            }
+        },
+        {
+            $lookup: {
+                from: "members",
+                localField: "contributor",
+                foreignField: "_id",
+                as: "contributor"
+            }
+        },
+        { $unwind: "$contributor" },
+
+        {
+            $facet: {
+                contribution: [
+                    {
+                        $project: {
+                            memberName: {
+                                $concat: [
+                                    "$contributor.firstname",
+                                    " ",
+                                    "$contributor.lastname"
+                                ]
+                            },
+                            startDate: 1,
+                            endDate: 1,
+                            amount: 1,
+                            contributedOn: 1
+                        }
+                    },
+                    { $sort: { contributedOn: -1 } },
+                    { $skip: skip },
+                    { $limit: limit }
+                ],
+                totalCount: [
+                    { $count: "total" }
+                ]
+            }
+        }
+    ]);
+
+    const contribution = result[0].contribution;
+    const total = result[0].totalCount[0]?.total || 0;
+
+    res.status(200).json({
+        success: true,
+        message: "All contribution history retrieved",
+        data: {
+            contribution,
+            pagination: {
+                total,
+                page,
+                totalPages: Math.ceil(total / limit),
+                limit
+            }
+        }
+    });
+});
