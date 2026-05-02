@@ -3,7 +3,7 @@ import Mailgun from "mailgun.js"
 
 process.env.NODE_ENV !== 'production' && process.loadEnvFile()
 
-export const sendEmailFromServer = async (email, subject, message) => {
+export const sendEmailFromServer = async (email, subject, message, attachments = []) => {
     const mailgun = new Mailgun(FormData)
     const mg = mailgun.client({
         username: 'api',
@@ -15,7 +15,9 @@ export const sendEmailFromServer = async (email, subject, message) => {
             to: `You <${email}>`,
             subject,
             html: message,
-            'h:X-Priority': 1
+            'h:X-Priority': 1,
+
+            attachment: attachments,
         })
     } catch (error) {
         console.error(error)
