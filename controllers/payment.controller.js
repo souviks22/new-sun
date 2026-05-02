@@ -1,16 +1,18 @@
-import { Payment, PaymentStatus } from "../models/Payment.js"
+import crypto from "crypto"
+import fs from "fs"
+import Razorpay from "razorpay"
+import catchAsync from "../errors/async.js"
+import { generateReceipt } from "../generate_reciept.js"
 import { Contribution } from "../models/Contribution.js"
 import { Donation } from "../models/Donation.js"
 import { Member } from "../models/Member.js"
-import { saveContribution, getFormattedDate } from "./contribution.controller.js"
-import { saveDonation } from "./donation.controller.js"
-import { sendEmailFromServer } from "../utility/mailer.js"
+import { Payment, PaymentStatus } from "../models/Payment.js"
+import { Receipt } from "../models/Receipt.js"
 import { contributionReceivedEmail, donationReceivedEmail } from "../utility/emails.js"
-
-import crypto from "crypto"
-import Razorpay from "razorpay"
-import catchAsync from "../errors/async.js"
-
+import { sendEmailFromServer } from "../utility/mailer.js"
+import { generateBillNo } from "../utils/billNo.js"
+import { getFormattedDate, saveContribution } from "./contribution.controller.js"
+import { saveDonation } from "./donation.controller.js"
 process.env.NODE_ENV !== 'production' && process.loadEnvFile()
 
 const razorpay = new Razorpay({
@@ -100,17 +102,146 @@ export const savePaymentDetails = async (req, mailable = false) => {
     switch (intent) {
         case PaymentIntent.CONTRIBUTION:
             if (status === PaymentStatus.COMPLETED) {
-                const { contributor, amount: contribution, startDate, endDate } = await Contribution.findOne({ payment: payment._id }).populate('contributor')
+                const { contributor, amount: contribution, startDate, endDate, contributedOn } = await Contribution.findOne({ payment: payment._id }).populate('contributor')
                 await Member.findByIdAndUpdate(contributor._id, { lastContributionOn: endDate })
-                if (mailable) sendEmailFromServer(contributor.email, 'Contribution Received', contributionReceivedEmail(contributor.firstname, contribution, getFormattedDate(startDate), getFormattedDate(endDate), paymentId))
+                if (mailable) {
+                    const existingReceipt = await Receipt.findOne({ payment: payment._id });
+                    if (existingReceipt) return;
+
+                    const billNo = await generateBillNo("MC");
+
+                    const start = getFormattedDate(startDate);
+                    const end = getFormattedDate(endDate);
+
+                    const cause =
+                        start === end
+                            ? `Contribution for ${start}`
+                            : `Contribution from ${start} to ${end}`;
+
+                    const formattedAmount = Number(contribution || 0).toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    // ✅ Save Receipt FIRST
+                    const receipt = await Receipt.create({
+                        billNo,
+                        issueDate: payment.createdAt,
+                        name: `${contributor.firstname} ${contributor.lastname}`,
+                        intent: "contribution",
+                        cause,
+                        amount: contribution,
+                        payment: payment._id
+                    });
+
+                    // ✅ Generate PDF
+                    const pdfPath = await generateReceipt({
+                        templatePath: "template.pdf",
+                        name: receipt.name,
+                        mode: "Online",
+                        cause,
+                        amount: formattedAmount,
+                        billNo,
+                        date: new Date(payment.createdAt).toLocaleDateString("en-IN")
+                    });
+
+                    // ✅ Send Email
+                    await sendEmailFromServer(
+                        contributor.email,
+                        'Contribution Received',
+                        contributionReceivedEmail(
+                            contributor.firstname,
+                            contribution,
+                            start,
+                            end,
+                            paymentId
+                        ),
+                        [
+                            {
+                                filename: `${billNo}.pdf`,
+                                data: fs.createReadStream(pdfPath)
+                            }
+                        ]
+                    );
+                }
             } else await saveContribution(req)
             break
         case PaymentIntent.DONATION:
             if (status === PaymentStatus.COMPLETED) {
-                const { name, email, amount: donation, subjectedTo } = await Donation.findOne({ payment: payment._id })
-                if (mailable) sendEmailFromServer(email, `Donation Received for ${subjectedTo}`, donationReceivedEmail(name, donation, paymentId))
-            } else await saveDonation(req)
-            break
+
+                const donationData = await Donation
+                    .findOne({ payment: payment._id })
+                    .populate('payment');
+
+                const { name, email, amount: donation, subjectedTo, payment: paymentDoc } = donationData;
+
+                if (mailable) {
+
+                    const existingReceipt = await Receipt.findOne({ payment: payment._id });
+                    if (existingReceipt) return;
+
+                    const myDict = {
+                        "project udaan": "UD",
+                        "sunshine": "SU",
+                        "project suraksha": "SK",
+                        "charity": "GD"
+                    };
+
+                    const key = subjectedTo?.toLowerCase().trim();
+                    const prefix = myDict[key] || "OT";
+
+                    const billNo = await generateBillNo(prefix);
+
+                    const cause = `Donation for ${subjectedTo}`;
+
+                    const formattedAmount = Number(donation || 0).toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    const paymentDate = paymentDoc?.createdAt
+                        ? new Date(paymentDoc.createdAt).toLocaleDateString("en-IN")
+                        : new Date().toLocaleDateString("en-IN");
+
+                    // ✅ Save Receipt FIRST
+                    const receipt = await Receipt.create({
+                        billNo,
+                        issueDate: payment.createdAt,
+                        name,
+                        intent: "donation",
+                        cause,
+                        amount: donation,
+                        payment: payment._id
+                    });
+
+                    // ✅ Generate PDF
+                    const pdfPath = await generateReceipt({
+                        templatePath: "template.pdf",
+                        name: receipt.name,
+                        mode: "Online",
+                        cause,
+                        amount: formattedAmount,
+                        billNo,
+                        date: paymentDate
+                    });
+
+                    // ✅ Send Email
+                    await sendEmailFromServer(
+                        email,
+                        `Donation Received for ${subjectedTo}`,
+                        donationReceivedEmail(name, donation, paymentId),
+                        [
+                            {
+                                filename: `${billNo}.pdf`,
+                                data: fs.createReadStream(pdfPath)
+                            }
+                        ]
+                    );
+                }
+            } else {
+                await saveDonation(req);
+            }
+            break;
         default:
             throw new Error('Not a recognized intent.')
     }
