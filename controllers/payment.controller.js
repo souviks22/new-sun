@@ -184,6 +184,7 @@ export const savePaymentDetails = async (req, mailable = false) => {
                         "project udaan": "UD",
                         "sunshine": "SU",
                         "project suraksha": "SK",
+                        "agomonir ahobane":"AA",
                         "charity": "GD"
                     };
 
